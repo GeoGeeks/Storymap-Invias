@@ -1,0 +1,718 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us">
+<head>
+
+<title>Proyectos INVIAS 2015</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=7, IE=9">
+
+<link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
+<link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/claro/claro.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<script type="text/javascript" src="lib/jquery_1.7.2.min.js"></script>
+
+<script type="text/javascript">var djConfig = {parseOnLoad: true};</script>
+<script type="text/javascript" src="//js.arcgis.com/3.13/"></script>
+<script type="text/javascript" src="common/helper_functions.js"></script>
+<script type="text/javascript" src="lib/ie8_compatibility.js"></script>
+<script type="text/javascript" src="lib/LocationsService.js"></script>
+
+
+<!--Social Media Links-->
+<script type="text/javascript">var switchTo5x=true;</script>
+<script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
+<script type="text/javascript">stLight.options({publisher:'77225c91-2742-42f7-b1b4-bddda99a9bde'});</script>
+<!--END Social Media Links-->
+
+
+<script type="text/javascript">
+
+dojo.require("dijit.layout.BorderContainer");
+dojo.require("dijit.layout.ContentPane");
+dojo.require("esri.arcgis.utils");
+dojo.require("esri.map");
+
+/******************************************************
+***************** begin config section ****************
+*******************************************************/
+
+var TITLE = "Proyectos del INVIAS 2015"
+var BYLINE = "A través de esta aplicación se podran observar los diferentes proyectos que se llevan a cabo en el INVIAS en el año 2015, mostrando sus respectivos avances."
+var BASEMAP_URL = "http://server.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer";
+var SATELLITE_URL = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
+var STREETS_URL = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer";
+
+//var OP_RUL="http://arcgis-esrico103-624953939.us-east-1.elb.amazonaws.com/arcgis/rest/services/Transporte/Proyectos/MapServer";
+
+//var CSV_FILE = "data/Proyectos.csv";
+
+
+
+var webMapItemID ="d077b9b9e9c84cf2b420fc2410645632"; 
+//var MALL_ZOOM_LEVEL = 14;
+var FULL_ZOOM_LEVEL = 5;
+var MAP_MODE_SINGLE = 0;
+var MAP_MODE_ALL = 1;
+
+/******************************************************
+***************** end config section ******************
+*******************************************************/
+var colorsChart = ["rgb(166,206,227)","rgb(31,120,180)","rgb(178,223,138)","rgb(51,160,44)","rgb(251,154,153)","rgb(227,26,28)","rgb(253,191,111)","rgb(255,127,0)","rgb(202,178,214)"];
+var selectedColor = "rgb(166,206,227)";
+
+var _dojoReady = false;
+var _jqueryReady = false;
+
+var _map;
+var _initExtent;
+var _map2;
+
+var _locations;
+
+var _layerOthers;
+var _layerSpecial;
+
+var _isMobile = isMobile();
+var _isNaughtyBrowser = ((navigator.appVersion.indexOf("Windows NT 5.1")!=-1) && (navigator.appVersion.indexOf("MSIE 8.0")!=-1));
+
+var _selected, _selectedPoint;
+
+var locationsService = new LocationsService();
+
+var _mode = MAP_MODE_SINGLE;
+
+dojo.addOnLoad(function() {_dojoReady = true;init()});
+jQuery(document).ready(function() {_jqueryReady = true;init()});
+
+function init() {
+	
+	if (!_jqueryReady) return;
+	if (!_dojoReady) return;
+	
+	// check to see if the client is IE8 on Windows NT.  If so, back off on the zoom level, because the
+	// map can't handle BIG swings across the country at that level.
+	if (_isNaughtyBrowser) {
+		MALL_ZOOM_LEVEL--;
+	}
+	
+	$("#title").append(TITLE);
+	$("#subtitle").append(BYLINE);	
+
+	handleWindowResize();
+	$(this).resize(handleWindowResize);
+		
+	_extent = new esri.geometry.Extent({"xmin":-9079495.967823979,"ymin":-575447.5407569867,"xmax":-7196087.590877735,"ymax":1528099.4776505048,"spatialReference":{"wkid":102100}});
+
+			  
+	$(locationsService).bind("complete", function(){
+		_locations = locationsService.getLocations();
+		_selected = _locations[0];
+		populateFacts();
+		createChart();
+		createPointer();
+		positionPointer();
+		selectBar();
+		determineTie();
+		init2();
+		$("#load").hide();
+	});
+	locationsService.getRegisters();	
+
+	require([
+        "esri/arcgis/utils",
+        "esri/map", "dojo/domReady!"
+    ], function (arcgisUtils, Map) {
+
+	    var createMapOptions1 = {
+	        mapOptions: {
+	            slider: false,
+	            wrapAround180:true
+	        }
+
+	    };
+
+	    var createMapOptions2 = {
+	        mapOptions: {
+	            slider: false,
+	            wrapAround180:true,
+	            showInfoWindowOnClick: false
+	        }
+
+	    };
+	    arcgisUtils.createMap(webMapItemID,"map", createMapOptions1).then(function(response){    
+	        _map = response.map;
+	        _map.setExtent(_extent);
+	        _map.removeLayer(_map.getLayer(_map.layerIds[0]));
+	        _map.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(BASEMAP_URL), 0);	
+        });
+        
+        arcgisUtils.createMap(webMapItemID,"map2", createMapOptions2).then(function(response){    
+	        _map2 = response.map;	 
+	        _map2.removeLayer(_map2.getLayer(_map2.layerIds[0]));
+	        _map2.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(SATELLITE_URL), 0);	       
+        });
+        
+	});
+
+	dojo.connect(_map, 'onLoad', init2);	
+	dojo.connect(_map2, 'onLoad', init2);
+	
+}
+
+function init2(map) {
+	if (!_map.loaded) return;
+	if (!_map2.loaded) return;
+	if (!_locations) return;
+
+
+	_layerOthers = new esri.layers.GraphicsLayer();
+	_layerSpecial = new esri.layers.GraphicsLayer();
+	_layerOthers.hide();
+	_layerSpecial.hide();
+	$(locationsService.getLocationsPoints()).each(function(index, element) {
+	   _layerOthers.add(element); 
+	});
+	
+	//_map.addLayer(lay);
+	_map.addLayer(_layerOthers);
+	_map.addLayer(_layerSpecial);
+	
+	dojo.connect(_layerOthers, "onMouseOver", layer_onMouseOver);
+	dojo.connect(_layerOthers, "onMouseOut", layer_onMouseOut);
+	dojo.connect(_layerOthers, "onClick", layer_onClick);
+	
+	setTimeout(situateMaps,500);
+	setTimeout(function(){_layerSpecial.show()},2000);
+	setTimeout(function(){_layerOthers.show()},2000);
+	
+	$("#zoomIn").click(function(e) {
+		_map.setLevel(_map.getLevel()+1);
+	});
+	$("#zoomOut").click(function(e) {
+		_map.setLevel(_map.getLevel()-1);
+	});
+	$("#zoomExtent").click(function(e) {
+		_map.setExtent(_extent);
+	});
+
+	$(".arrow").click(onArrowClick)
+	
+	$("#flip").click(toggleMaps);
+
+}
+
+function handleWindowResize() {
+	var heightDoc = getViewportDimensions()[1];
+	$("#mainWindow").height(heightDoc);
+	dijit.byId("mainWindow").layout();
+	$("#map").height($("#mainWindow").height() - $("#graphContainer").height());
+	$("#tableChart").height($("#graphContainer").height() - 30);
+	$("#estadistica").height($("#graphContainer").height() - 30);
+	$("#contentLines").height($("#graphContainer").height() - 30);
+	$("#map2").height($("#mainWindow").height()-$("#divTable").height() - $("#header").height());
+	$("#flip").css("top",($("#map2").height() / 2)+$("#header").height());
+	$("#tie").css("left",($("#divTable").width() / 4)+40);
+	positionPointer();
+	if (_map) _map.resize();
+	if (_map2) _map2.resize();
+	if (_selected) {
+		setTimeout(function(){	
+		_map.centerAt(_selected.geometry.getExtent().getCenter());
+		_map2.centerAt(_selected.geometry.getExtent().getCenter());
+		},500);
+	}
+}
+
+function layer_onClick(event)
+{
+	$("#hoverInfo").hide();	
+	_selected = locationsService.findGraphic(event.graphic);
+	postSelection();
+}
+
+function layer_onMouseOver(event)
+{
+	if (_isMobile) return;	
+	_map.setMapCursor("pointer");
+	var graphic = locationsService.findGraphic(event.graphic);
+	graphic.setSymbol(graphic.symbol.setWidth(25).setHeight(28).setOffset(0,8));
+	$("#hoverInfo").html(graphic.attributes.name);
+	var pt = _map.toScreen(graphic.geometry.getExtent().getCenter());
+	hoverInfoPos(pt.x,pt.y);	
+}
+
+function layer_onMouseOut(event)
+{
+	_map.setMapCursor("default");
+	var graphic = locationsService.findGraphic(event.graphic);	
+	graphic.setSymbol(graphic.symbol.setWidth(21).setHeight(24).setOffset(0,7));
+	$("#hoverInfo").hide();	
+}
+
+function onBarClick(event) {
+	_selected = _locations[$.inArray(event.target,$(".bar"))];
+	postSelection();
+}
+
+function onBarMouseOver(event) {
+	if (_isMobile) return;	
+	var name = _locations[$.inArray(event.target,$(".bar"))].attributes.name;
+	var barTip = $("<div id='barTip'>"+name+"</div>");
+	barTip.css("top",event.clientY - (($("#map").height() + $("#header").height())+30));
+	$("#graphContainer").append(barTip);
+	var left = event.clientX - $("#divTable").width();
+	if ((left + $(barTip).width())>$("#graphContainer").width()) {
+		left = left - ((left + $(barTip).width()) - $("#graphContainer").width());
+	}
+	$(barTip).css("left",left); 
+}
+
+function onBarMouseOut(event) {
+	$("#barTip").remove();
+}
+
+function toggleMaps() {
+	if (_mode == MAP_MODE_SINGLE) {
+		_mode = MAP_MODE_ALL;
+		_map.removeLayer(_map.getLayer(_map.layerIds[0]));
+        _map.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(SATELLITE_URL), 0);	
+		_map2.removeLayer(_map2.getLayer(_map2.layerIds[0]));
+        _map2.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(BASEMAP_URL), 0);
+        _map.setExtent(_selected.geometry.getExtent());
+		_map2.centerAndZoom(_selected.geometry.getExtent().getCenter(), FULL_ZOOM_LEVEL);		
+	} else {
+		_mode = MAP_MODE_SINGLE;
+		_map.removeLayer(_map.getLayer(_map.layerIds[0]));
+        _map.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(BASEMAP_URL), 0);	
+		_map2.removeLayer(_map2.getLayer(_map2.layerIds[0]));
+        _map2.addLayer(new esri.layers.ArcGISTiledMapServiceLayer(SATELLITE_URL), 0);	
+		_map.centerAndZoom(_selected.geometry.getExtent().getCenter(), FULL_ZOOM_LEVEL);
+		_map2.setExtent(_selected.geometry.getExtent());
+	}
+
+}
+
+function postSelection() {
+	selectBar();
+	populateFacts();
+	situateMaps();
+	createPointer();	
+	positionPointer();
+	determineTie();
+}
+
+function createPointer() {
+	$("#pointerThingie").remove();
+	var bar = $(".bar")[$.inArray(_selected,_locations)];
+	var div = $("<div id='pointerThingie'></div>");
+	var inner = $("<div style='position:relative'></div>");
+	var arrow = $("<img src='images/arrow_down_purple.png' style='position:absolute;width:20px'></img>");
+	$(inner).append("<div style='background-color:#aaa;padding:4px'>"+_selected.attributes.name+"</div>");
+	$(inner).append(arrow);
+	$(div).append(inner);
+	$(bar).append(div);
+	$(arrow).css("left",(($(inner).width() - $(arrow).width())/2)-1);
+}
+
+function positionPointer() {
+	var bar = $(".bar")[$.inArray(_selected,_locations)];
+	var div = $(bar).find("#pointerThingie");
+	$(div).css("left",($(bar).width()/2)-($(div).width()/2));
+	$(div).css("top",-($(div).height()+15));	
+}
+
+function selectBar() {
+	//$(".bar").css("background-color","#ba87c3");
+	var barC;
+	for(i = 0; i < $(".bar").length ; i++){
+		barC = $(".bar").eq(i).css("background-color",colorsChart[i]);
+	}
+
+	var bar = $(".bar")[$.inArray(_selected,_locations)];
+	selectedColor = colorsChart[$.inArray(_selected,_locations)];
+	//alert(selectedColor);
+	//selectedColor = colorsChart[$.inArray(_selected,_locations)];
+	//$(bar).css("background-color","#9e52ce");
+}
+
+function determineTie() {
+	if ($.grep(_locations,function(n,i){return n.attributes.rank == _selected.attributes.rank}).length > 1) {
+		$("#tie").fadeIn();
+	} else {
+		$("#tie").fadeOut();		
+	}
+}
+
+function populateFacts() {
+	$("#cellName").empty();
+	$("#cellName").append("<a href='"+_selected.attributes.website+"' class='textColor' target='_blank' style='color:"+selectedColor+"''>"+_selected.attributes.name+"</a>");
+	$("#cellName").css("color",selectedColor);
+	$("#cellDescription").empty();
+	$("#cellDescription").append(_selected.attributes.description);
+	$("#cellRank").empty();
+	$("#cellRank").append(_selected.attributes.rank);
+	$("#cellRank").css("color",selectedColor);
+	$("#cellWhere").empty();
+	//$("#cellWhere").append(_selected.attributes.city+", "+_selected.attributes.state);	
+	$("#cellWhere").append(_selected.attributes.city);	
+	$("#cellSize").empty();
+	$("#cellSize").append(addCommas(_selected.attributes.leasable_area));	
+	$("#cellOpened").empty();
+	$("#cellOpened").append(_selected.attributes.opened);	
+	$("#cellNumberStores").empty();
+	$("#cellNumberStores").append(_selected.attributes.number_stores);	
+	$("#cellRenovated").empty();
+	$("#cellRenovated").append(_selected.attributes.renovated);	
+	$("#cellParkingPlaces").empty();
+	$("#cellParkingPlaces").append(_selected.attributes.parking_places);	
+	$("#cellFoodCourt").empty();
+	$("#cellFoodCourt").append(_selected.attributes.food_court);
+	$("#cellLevels").empty();
+	if(_selected.attributes.levels=="Verde"){
+	$("#cellLevels").append("<span style='color:green'>"+_selected.attributes.levels+"</span>");
+	}else if (_selected.attributes.levels=="Rojo"){
+	$("#cellLevels").append("<span style='color:red'>"+_selected.attributes.levels+"</span>");
+	}
+	else if (_selected.attributes.levels=="Amarillo"){
+	$("#cellLevels").append("<span style='color:#FFBF00'>"+_selected.attributes.levels+"</span>");
+	}
+	
+	
+}
+
+
+function createChart() {
+	var maxVal = getMax();
+	var tr = $("<tr></tr>");
+	var space,td,shell,bar,pct;
+	//var colorSemaforo;
+	maxVal = aproximar(maxVal.toString());
+	crearEstadistica(addCommas(maxVal));
+	crearLineas();
+
+	$.each(_locations,function(index,value) {
+	    //colorSemaforo="yellow";
+		pct = (value.attributes.leasable_area / maxVal) * 100;
+		space = $("<td></td>");
+		td = $("<td></td>");
+		shell = $("<div class='barShell'></div>");
+		
+		                               /*if(value.attributes.levels=="Rojo"){
+										colorSemaforo="red";
+                                              
+                               }if(value.attributes.levels=="Verde"){
+                                        colorSemaforo="#01DF01";                                
+                               }*/
+
+		
+		
+		bar = $("<div class='bar' style='height:"+pct+"%'></div>");
+		//bar = $("<div class='bar' style='background-color:"+colorSemaforo+";height:"+pct+"%'></div>");
+		$(shell).append(bar);
+		$(td).append(shell);
+		$(tr).append(space);
+		$(tr).append(td);
+	});
+	$(tr).append("<td></td>");
+	$("#tableChart").append(tr);
+	$(".bar").click(onBarClick);
+	$(".bar").mouseover(onBarMouseOver);
+	$(".bar").mouseout(onBarMouseOut);	
+}
+
+function aproximar(maxValChain){
+	var cifras = maxValChain.length - 2;
+	var sum1= maxValChain.substring(0, 2), sum2="1";
+	for(i=0; i< cifras;i++){
+		sum1 = sum1 + "0";
+		sum2 = sum2 + "0";
+	}
+	var valueMax = parseInt(sum1)+parseInt(sum2);
+	return valueMax;
+}
+
+function crearEstadistica(maxVal){
+	var descripcion, valorRango, rango;	
+
+	descripcion = $("<div class='descripcionRango'></div>");	
+	textoDescripcion = $("<p class='texto'>Valor en pesos</p>");	
+	$(descripcion).append(textoDescripcion);
+	$("#estadistica").append(descripcion);
+
+	valorRango = $("<div class='valorRango'></div>");	
+	valorMin = $("<p class='valor' style='bottom: -2px'>0</p>");
+	valorMax = $("<p class='valor' style='top: -9px'>"+maxVal+"</p>");
+	$(valorRango).append(valorMax);
+	$(valorRango).append(valorMin);
+	$("#estadistica").append(valorRango);
+
+
+	//Dibujando barra de rango
+	rango = $("<div class='barraRango'></div>");
+	$("#estadistica").append(rango);
+	
+}
+
+function crearLineas(){
+
+	for(i=0; i<$("#contentLines").height(); i=i+30){
+		descripcion = $("<div class='line' style='position: absolute; left: 0px; bottom:"+i+"px;'></div>");
+		$("#contentLines").append(descripcion);
+	}
+}
+
+function getMax() {
+	var maxVal = 0;
+	$.each(_locations,function(index,value) {
+		if (value.attributes.leasable_area > maxVal) maxVal = value.attributes.leasable_area;
+	});
+	return maxVal;
+}
+
+function situateMaps() {
+	
+	_map2.graphics.clear();
+	_map2.graphics.add(new esri.Graphic(locationsService.findGraphicPoint(_selected).geometry,locationsService.findGraphicPoint(_selected).symbol.setOffset(0,7)));
+	// remove formerly selected graphic from special layer,
+	// restore its hum-drum symbol status and re-add it with
+	// the others.
+	if (_layerSpecial.graphics.length > 0) {
+		var old = _layerSpecial.graphics[0];
+		//old.setSymbol(new esri.symbol.PictureMarkerSymbol("images/PurplePinLighter.png"));
+		old.symbol.setWidth(21).setHeight(24).setOffset(0,7);
+		_layerSpecial.remove(old);
+		_layerOthers.add(old);
+	}
+	// change the currently selected graphic's symbol status,
+	// remove it from the others and put it in the special
+	// layer.
+	//locationsService.findGraphicPoint(_selected).setSymbol(new esri.symbol.PictureMarkerSymbol("images/PurplePin.png"));
+	locationsService.findGraphicPoint(_selected).symbol.setWidth(32).setHeight(36).setOffset(0,9);
+	_layerOthers.remove(locationsService.findGraphicPoint(_selected));
+	_layerSpecial.add(locationsService.findGraphicPoint(_selected));
+	if (_mode == MAP_MODE_SINGLE) {		
+		//specialCenterAndZoom(_map, _selected.geometry.getExtent().getCenter(), MALL_ZOOM_LEVEL);
+		_map.centerAndZoom(_selected.geometry.getExtent().getCenter(), FULL_ZOOM_LEVEL);
+		_map2.setExtent(_selected.geometry.getExtent());
+	} else {
+		/*if (!_map.extent.contains(_selected.geometry.getExtent().getCenter())) {
+			_map.centerAt(_selected.geometry.getExtent().getCenter());
+		} else {
+			// basically, just re-center the map where it already
+			// is -- this is to get the map to refresh...
+			_map.centerAt(_map.extent.getCenter().getExtent().getCenter());
+		}*/
+		_map.setExtent(_selected.geometry.getExtent());
+		_map2.centerAndZoom(_selected.geometry.getExtent().getCenter(), FULL_ZOOM_LEVEL);
+	}
+}
+
+function specialCenterAndZoom(map, center, level)
+{
+	
+	/* this function is a work-around to using centerAt() at large extents.
+	   there seems to be a bug whereby the map fetches unneccesary tiles
+	   on centerAt(), so we need to make sure to turn off layers (and zoom out?)
+	   before re-centering */
+	
+	// which layers are visible?
+	
+	var visibleLayers = [];
+	
+	$.each(map.layerIds, function(index, value) {
+		if (map.getLayer(value).visible) visibleLayers.push(value);
+	});
+	
+	$.each(map.graphicsLayerIds, function(index, value) {
+		if (map.getLayer(value).visible) visibleLayers.push(value);
+	});
+	
+	// turn off visible layers
+	
+	$.each(visibleLayers, function(index, value) {
+		map.getLayer(value).hide();
+	});
+
+	map.setLevel(3);
+	setTimeout(function() {
+		map.centerAt(center);
+		setTimeout(function() {
+			map.setLevel(level);
+			map.centerAt(center);
+			setTimeout(function(){
+				// turn visible layers back on
+				$.each(visibleLayers, function(index, value) {
+					map.getLayer(value).show();
+				});
+			}, 200);
+		}, 200);
+	}, 200)
+}
+
+function onArrowClick(event) {
+	var index = $.inArray(_selected,_locations);
+	if (event.target.id == "arrowDown") {
+		if (index == _locations.length - 1) index = 0;
+		else index++;
+	} else {
+		if (index == 0) index = _locations.length - 1;
+		else index--;
+	}
+	_selected = _locations[index];
+	postSelection();
+}
+
+function hoverInfoPos(x,y){
+	if (x <= ($("#map").width())-230){
+		$("#hoverInfo").css("left",x+15);
+	}
+	else{
+		$("#hoverInfo").css("left",x-25-($("#hoverInfo").width()));
+	}
+	if (y >= ($("#hoverInfo").height())+50){
+		$("#hoverInfo").css("top",y-35-($("#hoverInfo").height()));
+	}
+	else{
+		$("#hoverInfo").css("top",y-15+($("#hoverInfo").height()));
+	}
+	$("#hoverInfo").show();
+}
+
+
+</script>
+
+</head>
+
+<body class="claro">
+    	<div id="load" style="background-color:rgba(0,0,0,0.7); width: 100%; height: 100%; position: absolute; z-index:1000">
+    		<img style="position:absolute; top: 38%; left:45%; width: 10%" src="images/iconoCargando-1-.gif">
+    	</div>
+    <!-- Header Section-->
+    	
+    
+      <!--Content-->
+      <div id="mainWindow" dojotype="dijit.layout.BorderContainer" gutters="false" region="center" style="width:100%;height:100%">
+      
+      	<!--Sidebar Section-->
+        <div dojotype="dijit.layout.ContentPane" id="leftPane" region="left">
+			<div id="header">
+				
+		      <div id="logoArea">
+		        <div id="social"><a id="msLink" href="http://www.arcgis.com/apps/PublicGallery/index.html?appid=c3aa04a80d004745a82b7daac19f9950&group=b3fdc8ffe017485b902607acdb3be870" target="_blank">		        	
+		        	Galeria de mapas<br><br> 
+		        	</a><a href="https://www.facebook.com/EsriColombiaSAS"><span  class='facebookBot' ></a><a href="https://twitter.com/geo_geeks"></span><span  class='twitterBot' ></span></a>
+		        </div>
+		        <div id="logo"><a id="logoLink" href="http://www.esri.co" target="_blank"><img id="logoImg" src="images/elementos-14.png" alt="Esri - Home"></a></div>
+		    
+		      </div>
+		    </div>
+          	<div id="map2"></div>
+            <div id="divTable">
+                <table id="tableDetails">
+                	<tr>
+                    	<td id="cellName" colspan="2" height="50px" style="vertical-align:middle;font-size:18px"></td>
+                    </tr>
+                	<tr>
+                    	<td id="cellDescription" colspan="2" class="black" style="height:50px;font-size:12px;font-weight:normal;padding-top:3px"></td>
+                    </tr>
+                    <tr>
+                    	<td rowspan="2" class="leftcell">
+                        	<span class="gray">Proyecto</span>
+                            <table id="tableArrows" style="width:100%;margin-top:-15px">
+                            	<tr>
+                                	<td style="height:23px;text-align:center;vertical-align:top">
+                                    <img id="arrowUp" class="arrow" src="images/picture_up.png" />
+                                    </td>
+                                <tr>
+                            	<tr>
+                                	<td style="height:30px;text-align:center;vertical-align:top;position:relative">
+	                                    <div id="cellRank" class="textColor" style="font-size:50px;height:50px;margin-top:-10px"></div>
+                                    </td>
+                                <tr>
+                            	<tr>
+                                	<td style="height:23px;text-align:center;vertical-align:bottom">
+                                    <img id="arrowDown" class="arrow" src="images/picture_down.png" />
+                                    </td>
+                                <tr>
+                            </table>                        
+                        </td>
+                    	<td style="height:55px">
+                        	<span class="gray">Departamento</span>
+                        	<br />
+                        	<span id="cellWhere" class="black"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                    	<td>
+                        	<span class="gray">Valor Inicial</span>
+                        	<br />
+                        	<span id="cellSize" class="black"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                    	<td class="leftcell">
+                        	<span class="gray">Fecha de Inicio</span>
+                        	<br />
+                        	<span id="cellOpened" class="black"></span>
+                        </td>
+                    	<td>
+                        	<span class="gray">Fecha de Terminación</span>
+                        	<br />
+                        	<span id="cellNumberStores" class="black"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                    	<td class="leftcell">
+                        	<span class="gray">Ejecución de obra</span>
+                        	<br />
+                        	<span id="cellRenovated" class="black"></span>
+                        </td>
+                    	<td>
+                        	<span class="gray">Tiempo transcurrido</span>
+                        	<br />
+                        	<span id="cellParkingPlaces" class="black"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                    	<td class="leftcell">
+                        	<span class="gray">Estado actual</span>
+                        	<br />
+                        	<span id="cellFoodCourt" class="black"></span>
+                        </td>
+                    	<td>
+                        	<span class="gray">Semáforo</span>
+                        	<br />
+                        	<span id="cellLevels" class="black"></span>
+                        </td>
+                    </tr>
+                    <tr style="border-bottom:none">
+                    	<td colspan="2" class="gray" style="vertical-align:middle"></td>
+                    </tr>
+                </table>
+                <span id="tie" class="gray" style="font-family:Arial, Helvetica, sans-serif;position:absolute;top:130px;display:none">tie</span>
+        	</div>
+        </div><!--/leftPane-->
+
+        <div dojotype="dijit.layout.ContentPane" id="rightPane" region="center">
+            <div id="map">
+                <div id="zoomToggle">
+                    <img id="zoomIn" src="images/ZoomLight_01.png">
+                    <img id="zoomExtent" src="images/ZoomHome.png">
+                    <img id="zoomOut" src="images/ZoomLight_03.png">
+                </div><!--?zoomToggle-->
+                <div id="hoverInfo"></div>
+            </div>
+            <div id="graphContainer">
+            	<div id="estadistica"></div>
+            	<div id='contentLines'></div>
+                <table id="tableChart"></table>
+            </div>
+            <img id="flip" src="images/Flip.png" class="flip" title="Swap overview and main map content."/>                    
+        </div>    
+      </div>
+              
+</body>
+
+</html>

@@ -1,0 +1,417 @@
+html,body,div,ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,p,blockquote,fieldset,input,hr {margin:0; padding:0;}
+html,body{height:100%;width:100%;overflow:hidden; font-family:Georgia, "Times New Roman", Times, serif; color:#444;}
+h1,h2,h3,h4,h5,h6,pre,code,address,caption,cite,code,em,th {font-weight:normal; font-style:normal; font-family:Arial, Helvetica, sans-serif; color:#fff;}
+ul,ol {list-style:none;}
+fieldset,img,hr {border:none; outline:none;}
+caption,th {text-align:left;}
+table {border-collapse:collapse; border-spacing:0;}
+td {vertical-align:top;}
+
+html,body {
+	/*
+	padding:0;
+	margin:0;
+	overflow:hidden;
+	*/
+	height:100%;
+	width:100%;
+	min-width:750px;
+	margin:auto	
+}
+
+body {
+	background-color:#fff;
+	color:#333;
+	font-size:14px;
+	overflow:hidden;
+	font-family:Georgia, "Times New Roman", Times, serif;
+}
+
+.claro .dijitContentPane {
+	background:none;
+	padding:0;
+	border:none;
+}
+
+a {
+	color:#555;
+	font-weight:bold;
+	text-decoration:none;
+	cursor:pointer;
+}
+
+a:hover{
+	text-decoration:underline;
+}
+	  
+#header {
+	height:115px;
+	background:url("../images/banner-11.png");
+	color:#fff;
+	margin:0;
+	overflow:hidden;
+}
+
+#headerText{
+	padding-top:5px;
+	padding-left:5px;
+	width:70%;
+	float:left;
+}
+
+#title {
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:20px;
+	font-weight:bold;
+	text-align:left;
+	margin-top:0px;
+	white-space: nowrap;  
+	overflow: hidden;  
+	text-overflow: ellipsis;
+	-o-text-overflow:ellipsis;
+}
+
+#subtitle {
+	font-size:13px;
+	margin-top:10px;
+	overflow: hidden;
+	font-weight:normal;
+	text-align: justify;
+}
+
+#logoArea{
+	float:right;
+	padding-top:5px;
+	padding-right:5px;
+	text-align:right;
+}
+
+#social{
+	margin-bottom:10px;
+	font-family: AvenirRegular;
+	background-repeat: no-repeat;
+	white-space: nowrap;
+	font-size: 11px;
+	margin-top: 10px;
+}
+
+#msLink{
+	color:#fff;
+	font-family:AvenirRegular;
+	font-size:12px;
+	outline:none;
+}
+
+#logo{
+	border:none;
+	outline:none;
+}
+
+#logoImg{
+	border:none;
+	outline:none;
+}
+
+#map {
+	border:none;
+	padding:0;
+	height:100%;
+	width:100%;
+}
+
+#hoverInfo{
+	font-size:11px;
+	font-family:Arial, Helvetica, sans-serif;
+	position:absolute;
+	padding:1px;
+	padding-right:2px;
+	max-width:200px;
+	background-color:#ffffe1;
+	border:#000000 solid 1px;
+	-webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+	border-radius: 0px;
+	-moz-box-shadow: 5px 1px 5px #333;
+	-webkit-box-shadow: 5px 1px 5px #333;
+	box-shadow: 1px 2px 5px -2px #333;
+	filter: progid: DXImageTransform.Microsoft.Shadow(strength = 2, direction = 135, color = '#333333');
+	-ms-filter: "progid: DXImageTransform.Microsoft.Shadow(strength = 2, Direction = 135, Color = '#333333')";
+	overflow:hidden;
+	display:none;
+	z-index:100;
+	color:#000000;
+}
+
+#zoomToggle{
+	position:absolute;
+	right:15px;
+	top:15px;
+	width:32px;
+	z-index:2;
+	cursor:pointer;
+}
+
+#mainWindow{
+	height:100%;
+	width:100%;
+}
+
+#leftPane {
+    width:30%;
+	min-width:400px;
+	height:100%;
+	font-size:0.9em;
+	overflow:hidden;
+}
+
+#rightPane {
+	border:none;
+	padding:0;
+	height:100%;
+	width:100%;
+	overflow:visible;
+}
+
+#map2 {
+	border:none;
+	padding:0;
+	width:100%;
+	overflow:hidden;
+}
+
+#divTable {
+	height:344px;
+	overflow-y:auto;
+	overflow-x:hidden;
+	position:relative;
+}
+
+#tableDetails {
+	font-family:Arial, Helvetica, sans-serif;
+	padding-left:10px;
+	width:100%;
+}
+
+#tableDetails tr {
+	border:solid;
+	border-color:#898989;
+	border-width:thin;	
+	border-right:none;
+	border-left:none;
+	border-top:none;	
+}
+
+#tableDetails td {
+	padding-left:10px;
+	padding-right:10px;
+	width:50%;
+	height:35px
+}
+
+#tableDetails .purple {
+	color:#9e52ce;
+	font-weight:bold;
+}
+
+#tableDetails .textColor {
+	font-weight:bold;
+}
+.gray {
+	color: #898989;
+}
+
+#tableDetails .black {
+	color: #000;
+	font-weight:bold;
+	font-size:14px;
+}
+
+#tableDetails .leftcell {
+	border:solid;
+	border-color:#898989;
+	border-width:thin;	
+	border-bottom:none;
+	border-left:none;
+	border-top:none;	
+}
+
+#tableArrows tr {
+	border:none;
+}
+
+.flip {
+	position:absolute;
+	z-index:1000;
+	left:0px;
+	margin-left:-25px;
+	margin-top:-25px;
+	width:50px;
+	height:50px;
+	cursor:pointer;
+}
+
+.arrow {
+	cursor:pointer;
+	height:20px;
+}
+
+#graphContainer {
+	height:30%;
+	background-color:#e4e4e4;
+	padding-left:10px;
+	padding-right:10px;
+	padding-bottom:10px;
+	padding-top:10px;	
+	position:relative;
+}
+
+#tableChart {
+	position: absolute;
+	left: 8%;
+	width:92%;
+	height:100%;	
+}
+
+#tableChart tr {
+	height:100%;
+	width:100%;
+}
+
+#tableChart td {
+	height:100%;
+}
+
+.barShell {
+	position:relative;
+	width:100%;
+	height:100%;
+}
+
+.bar {
+	position:absolute;
+	bottom:0px;
+	width:100%;
+	/*background-color:#ba87c3;	*/
+	cursor:pointer;
+}
+
+#pointerThingie {
+	position:absolute;
+	color:white;
+	font-family:Verdana, Geneva, sans-serif;
+	padding-bottom:10px;
+}
+
+#barTip {
+	position:absolute;
+	font-size:11px;
+	font-family:Arial, Helvetica, sans-serif;
+	padding:1px;
+	padding-right:2px;
+	max-width:200px;
+	background-color:#ffffe1;
+	border:#000000 solid 1px;
+	-webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+	border-radius: 0px;
+	-moz-box-shadow: 5px 1px 5px #333;
+	-webkit-box-shadow: 5px 1px 5px #333;
+	box-shadow: 1px 2px 5px -2px #333;
+	filter: progid: DXImageTransform.Microsoft.Shadow(strength = 2, direction = 135, color = '#333333');
+	-ms-filter: "progid: DXImageTransform.Microsoft.Shadow(strength = 2, Direction = 135, Color = '#333333')";
+	overflow:hidden;
+	z-index:100;
+	color:#000000;
+}
+#estadistica{
+	width: 8%;
+	float: left;
+	color: #777;
+}
+.descripcionRango{
+	position:  relative;
+	float: left;
+	width: 5%;
+	height: 100%;	
+}
+.descripcionRango .texto{
+	position: absolute;
+	bottom: 50%;
+	font-family: sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	white-space: nowrap; 
+	-webkit-transform: rotate(270deg);
+	-moz-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
+	margin-left: -42px;
+}
+.valorRango{
+	position:  relative;
+	float: left;
+	width:80%;
+	height: 100%;
+}
+.barraRango{
+	background-color: #aaa;
+	float: right;
+	bottom:0px;
+	width:5%;
+	height: 100%;
+}
+.valorRango .valor{
+	position: absolute;
+	width: 50px;
+	text-align: right;
+	font-family: sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	right: 0;
+}
+#contentLines{
+	position: absolute;
+	left: 8%;
+	width:89%;
+	height:100%;
+}
+.line{
+	background-color: #aaa;
+	height: 1px;
+	width: 100%;
+}
+.facebookBot{
+	background-image: url(../images/elementos-12.png);
+	font-family: AvenirBold;
+	background-repeat: no-repeat;
+	white-space: nowrap;
+	font-size: 11px;
+	display: inline-block;
+	height: 25px;
+	width: 25px;
+	line-height: 16px;
+	margin-right: 15px;
+	cursor: pointer;
+}
+.twitterBot{
+	background-image: url(../images/elementos-13.png);
+	font-family: AvenirBold;
+	background-repeat: no-repeat;
+	white-space: nowrap;
+	font-size: 11px;
+	display: inline-block;
+	height: 25px;
+	width: 25px;
+	line-height: 16px;
+	margin-right: 19px;
+	cursor: pointer;
+}
+
+@font-face{
+	font-family: AvenirBold;
+	src: url(../Fonts/Avenir/AvenirNextLTPro-Bold.otf);
+}
+
+@font-face{
+	font-family: AvenirRegular;
+	src: url(../Fonts/Avenir/AvenirNextLTPro-Regular.otf);
+}
