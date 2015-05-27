@@ -4,6 +4,8 @@
 
 <title>Proyectos INVIAS 2015</title>
 
+<link rel="shortcut icon" type="image/ico" href="images/favicon.ico">
+
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=7, IE=9">
 
@@ -44,10 +46,12 @@ var BASEMAP_URL = "http://server.arcgisonline.com/arcgis/rest/services/Canvas/Wo
 var SATELLITE_URL = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
 var STREETS_URL = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer";
 
+var iframeMap3D = '<iframe width="100%" height="100%" src="http://industry-esri-co.maps.arcgis.com/home/webscene/viewer.html?webscene=3683211f719a4ef8b89acfdfa815c548&ui=min"></iframe>';
+
 //var OP_RUL="http://arcgis-esrico103-624953939.us-east-1.elb.amazonaws.com/arcgis/rest/services/Transporte/Proyectos/MapServer";
 
 //var CSV_FILE = "data/Proyectos.csv";
-
+var tipoMapa = false; //False indica que el mapa en 3D esta desactivado, de lo contrario se esta mostrando
 
 
 var webMapItemID ="d077b9b9e9c84cf2b420fc2410645632"; 
@@ -197,6 +201,8 @@ function init2(map) {
 		_map.setExtent(_extent);
 	});
 
+	$("#changeView").click(onChangeViewClick);
+
 	$(".arrow").click(onArrowClick)
 	
 	$("#flip").click(toggleMaps);
@@ -272,6 +278,33 @@ function onBarMouseOver(event) {
 function onBarMouseOut(event) {
 	$("#barTip").remove();
 }
+
+function onChangeViewClick(event){
+	if(!tipoMapa){
+		$('#map').hide();
+		$('#graphContainer').hide();
+		$('#flip').hide();
+
+		$('#changeView').empty();
+		$('#changeView').append('2D');
+
+		$('#map3d').append(iframeMap3D);
+		$('#map3d').css("display","block");		
+		tipoMapa = true;
+	}else{
+		$('#map').show();
+		$('#graphContainer').show();
+		$('#flip').show();
+
+		$('#changeView').empty();
+		$('#changeView').append('3D');
+
+		$('#map3d').empty();
+		$('#map3d').css("display","none");
+		tipoMapa = false;
+	}
+}
+
 
 function toggleMaps() {
 	if (_mode == MAP_MODE_SINGLE) {
@@ -696,11 +729,13 @@ function hoverInfoPos(x,y){
         </div><!--/leftPane-->
 
         <div dojotype="dijit.layout.ContentPane" id="rightPane" region="center">
+        	<span id="changeView" alt="Ver en mapa en 3D">3D</span>
+        	<div id="map3d"></div>
             <div id="map">
                 <div id="zoomToggle">
                     <img id="zoomIn" src="images/ZoomLight_01.png">
                     <img id="zoomExtent" src="images/ZoomHome.png">
-                    <img id="zoomOut" src="images/ZoomLight_03.png">
+                    <img id="zoomOut" src="images/ZoomLight_03.png">                    
                 </div><!--?zoomToggle-->
                 <div id="hoverInfo"></div>
             </div>
